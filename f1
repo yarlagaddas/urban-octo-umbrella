@@ -1,0 +1,18 @@
+public save(): void {
+  // Trigger input and change events for all input elements
+  const inputs = document.querySelectorAll('input, textarea, select');
+  inputs.forEach((input: any) => {
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+
+  // Force blur on the active element
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+
+  // Give time for value propagation to complete
+  setTimeout(() => {
+    this.saveData();
+  }, 100);
+}

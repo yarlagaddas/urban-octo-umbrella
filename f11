@@ -1,0 +1,11 @@
+  public save(): void {
+  if (this.clientConfig?.triggerApplicationName === 'LTS') {
+    // Add delay only for LTS
+    setTimeout(() => {
+      this.saveData();
+    }, 1000); // Tune the delay if needed
+  } else {
+    // All others (e.g., AWARE) go immediately
+    this.saveData();
+  }
+}

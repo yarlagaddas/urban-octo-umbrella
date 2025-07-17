@@ -1,0 +1,36 @@
+public save(): void {
+  try {
+    const screens = this.flowData?.screens || [];
+
+    screens.forEach((screen: any) => {
+      const outcomes = screen?.outcomes || [];
+      
+      outcomes.forEach((outcome: any) => {
+        const actions = outcome?.actions || [];
+
+        actions.forEach((action: any) => {
+          if (action.action === 'replace') {
+            const sourceUid = action.element; // UID of the source field
+            const targetUid = action.id;      // UID of the target (e.g., hidden field)
+
+            const sourceInput = document.querySelector(`[uid="${sourceUid}"]`) as HTMLInputElement;
+            const targetInput = document.querySelector(`[uid="${targetUid}"]`) as HTMLInputElement;
+
+            if (sourceInput && targetInput) {
+              targetInput.value = sourceInput.value;
+              // Optional: trigger change if engine watches it
+              targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+              console.log(`Copied ${sourceInput.value} ➝ UID ${targetUid}`);
+            }
+          }
+        });
+      });
+    });
+  } catch (e) {
+    console.warn('Manual sync from flowData failed:', e);
+  }
+
+  setTimeout(() => {
+    this.saveData();
+  }, 100);
+}

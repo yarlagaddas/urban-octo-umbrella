@@ -1,1 +1,73 @@
+public save(): void {
+  this.syncReplaceFieldsFromFlow();
+
+  setTimeout(() => {
+    this.saveData();
+  }, 100);
+}
+
+private syncReplaceFieldsFromFlow(): void {
+  const actions = this.getReplaceActionsFromFlow(this.flowData);
+
+  actions.forEach(({ sourceUid, targetUid }) => {
+    const sourceLabel = this.getLabelByUid(this.flowData, sourceUid);
+    const targetLabel = this.getLabelByUid(this.flowData, targetUid);
+
+    if (!sourceLabel || !targetLabel) {
+      console.warn(`❌ Missing label for UIDs: ${sourceUid} or ${targetUid}`);
+      return;
+    }
+
+    const sourceInput = document.querySelector(`[name="${sourceLabel}"], [id="${sourceLabel}"]`) as HTMLInputElement | null;
+    const targetInput = document.querySelector(`[name="${targetLabel}"], [id="${targetLabel}"]`) as HTMLInputElement | null;
+
+    if (sourceInput && targetInput) {
+      const valueToCopy = sourceInput.value ?? '';
+      targetInput.value = valueToCopy;
+      targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+      console.log(`✅ Copied '${valueToCopy}' from '${sourceLabel}' ➝ '${targetLabel}'`);
+    } else {
+      console.warn(`❌ Could not find DOM input for '${sourceLabel}' or '${targetLabel}'`);
+    }
+  });
+}
+
+
+private getReplaceActionsFromFlow(flowData: any): Array<{ sourceUid: string, targetUid: string }> {
+  const results: Array<{ sourceUid: string, targetUid: string }> = [];
+
+  const search = (obj: any) => {
+    if (Array.isArray(obj)) obj.forEach(search);
+    else if (obj && typeof obj === 'object') {
+      if (obj.action === 'replace' && typeof obj.element === 'string' && obj.id) {
+        const match = obj.element.match(/widgets:([\w-]+)/);
+        if (match) {
+          results.push({ sourceUid: match[1], targetUid: obj.id });
+        }
+      }
+      Object.values(obj).forEach(search);
+    }
+  };
+
+  search(flowData);
+  return results;
+}
+
+
+private getLabelByUid(flowData: any, uid: string): string | undefined {
+  let foundLabel: string | undefined;
+
+  const search = (obj: any): void => {
+    if (Array.isArray(obj)) obj.forEach(search);
+    else if (obj && typeof obj === 'object') {
+      if (obj.uid === uid && obj.label) {
+        foundLabel = obj.label;
+      }
+      Object.values(obj).forEach(search);
+    }
+  };
+
+  search(flowData);
+  return foundLabel;
+}
 

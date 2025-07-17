@@ -1,0 +1,12 @@
+public save(): void {
+  // Simulate a click outside to force metadata engine to flush value
+  const body = document.querySelector('body');
+  if (body) {
+    body.click(); // triggers focusout, blur, and metadata events tied to UI interactions
+  }
+
+  // Delay slightly to let metadata engine handle it
+  setTimeout(() => {
+    this.saveData();
+  }, 100);
+}

@@ -1,0 +1,71 @@
+public save(): void {
+  // Sync values manually before saving
+  this.syncReplaceUIDPairs();
+
+  // Allow metadata bindings to complete
+  setTimeout(() => {
+    this.saveData();
+  }, 100);
+}
+
+
+private syncReplaceUIDPairs(): void {
+  const uidsToCopy: Array<{ sourceUid: string, targetUid: string }> = [];
+
+  // Step 1: Recursively collect all replace actions
+  function collectReplaceActions(obj: any): void {
+    if (Array.isArray(obj)) {
+      obj.forEach(collectReplaceActions);
+    } else if (obj && typeof obj === 'object') {
+      if (obj.action === 'replace' && obj.element && obj.id) {
+        uidsToCopy.push({ sourceUid: obj.element, targetUid: obj.id });
+      }
+      Object.values(obj).forEach(collectReplaceActions);
+    }
+  }
+
+  collectReplaceActions(this.flowData);
+
+  // Step 2: Resolve field labels and copy values
+  uidsToCopy.forEach(({ sourceUid, targetUid }) => {
+    const sourceLabel = this.getLabelForUid(sourceUid);
+    const targetLabel = this.getLabelForUid(targetUid);
+
+    if (!sourceLabel || !targetLabel) {
+      console.warn('Missing label for UIDs:', sourceUid, targetUid);
+      return;
+    }
+
+    const sourceInput = document.querySelector(`[name="${sourceLabel}"], [id="${sourceLabel}"]`) as HTMLInputElement | null;
+    const targetInput = document.querySelector(`[name="${targetLabel}"], [id="${targetLabel}"]`) as HTMLInputElement | null;
+
+    if (sourceInput && targetInput) {
+      const valueToCopy = sourceInput.value ?? '';
+      targetInput.value = valueToCopy;
+      targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+      console.log(`Copied '${valueToCopy}' from '${sourceLabel}' ➝ '${targetLabel}'`);
+    } else {
+      console.warn(`Could not find DOM input for source='${sourceLabel}' or target='${targetLabel}'`);
+    }
+  });
+}
+
+private getLabelForUid(uid: string): string | undefined {
+  const matches: Array<{ uid: string, label: string }> = [];
+
+  function collectLabeledFields(obj: any): void {
+    if (Array.isArray(obj)) {
+      obj.forEach(collectLabeledFields);
+    } else if (obj && typeof obj === 'object') {
+      if (obj.uid && obj.label) {
+        matches.push({ uid: obj.uid, label: obj.label });
+      }
+      Object.values(obj).forEach(collectLabeledFields);
+    }
+  }
+
+  collectLabeledFields(this.flowData);
+
+  return matches.find(entry => entry.uid === uid)?.label;
+}

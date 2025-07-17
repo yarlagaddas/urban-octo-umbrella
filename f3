@@ -1,0 +1,19 @@
+public save(): void {
+  // Trigger 'change' on all input-like elements
+  const allInputs = document.querySelectorAll('input, textarea, select');
+
+  allInputs.forEach((input) => {
+    (input as HTMLElement).dispatchEvent(new Event('change', { bubbles: true }));
+    (input as HTMLElement).blur();
+  });
+
+  // Also blur active element just in case
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+
+  // Let metadata engine process 'onChange'
+  setTimeout(() => {
+    this.saveData();
+  }, 100);
+}

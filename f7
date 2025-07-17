@@ -1,0 +1,45 @@
+private syncReplaceUIDPairs(): void {
+  const uidsToCopy: Array<{ source: string, target: string }> = [];
+
+  // Recursively collect all {action: 'replace', element: uid, id: uid} entries
+  function collectReplaceActions(obj: any): void {
+    if (Array.isArray(obj)) {
+      obj.forEach(collectReplaceActions);
+    } else if (obj && typeof obj === 'object') {
+      if (obj.action === 'replace' && obj.element && obj.id) {
+        uidsToCopy.push({ source: obj.element, target: obj.id });
+      }
+
+      Object.values(obj).forEach(collectReplaceActions);
+    }
+  }
+
+  try {
+    collectReplaceActions(this.flowData);
+
+    uidsToCopy.forEach(({ source, target }) => {
+      const sourceInput = document.querySelector(`[uid="${source}"]`) as HTMLInputElement | null;
+      const targetInput = document.querySelector(`[uid="${target}"]`) as HTMLInputElement | null;
+
+      if (sourceInput && targetInput) {
+        const valueToCopy = sourceInput.value ?? '';
+        targetInput.value = valueToCopy;
+
+        // Optional: trigger change if needed by metadata engine
+        targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+        console.log(`Synced UID: ${source} ➝ ${target} | Value: '${valueToCopy}'`);
+      }
+    });
+  } catch (err) {
+    console.warn('Error while syncing UID pairs from flowData:', err);
+  }
+}
+
+public save(): void {
+  this.syncReplaceUIDPairs(); // force copy of values from visible ➝ hidden fields
+
+  setTimeout(() => {
+    this.saveData(); // continue saving after value sync
+  }, 100);
+}

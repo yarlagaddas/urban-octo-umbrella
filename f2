@@ -1,0 +1,73 @@
+A
+public save(): void {
+  // Force Angular to update form values if user hasn't left the field
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+
+  // Flush all pending value changes (important for reactive forms)
+  Object.keys(this.form.controls).forEach(key => {
+    const control = this.form.get(key);
+    if (control && control.value !== control.value) {
+      control.setValue(control.value);
+    }
+  });
+
+  setTimeout(() => {
+    this.saveData();
+  }, 100);
+}
+
+B
+@ViewChild('yourFormRef') formRef!: NgForm;
+
+public save(): void {
+  if (this.formRef) {
+    this.formRef.control.updateValueAndValidity();
+  }
+
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+
+  setTimeout(() => {
+    this.saveData();
+  }, 100);
+}
+
+------------------------------------------------------
+Final A
+public save(): void {
+  // If a field is still focused, force a change event on it
+  const active = document.activeElement as HTMLElement;
+  if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT')) {
+    active.dispatchEvent(new Event('change', { bubbles: true }));
+    active.blur(); // optional: triggers bound blur events
+  }
+
+  // Give time for the metadata event to process
+  setTimeout(() => {
+    this.saveData();
+  }, 100);
+}
+
+
+Final B
+public save(): void {
+  // Dispatch change event on all form inputs
+  const allInputs = document.querySelectorAll('input, textarea, select');
+
+  allInputs.forEach((input: HTMLElement) => {
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+
+  // Optional: blur the active input
+  if (document.activeElement instanceof HTMLElement) {
+    document.activeElement.blur();
+  }
+
+  // Give time for metadata engine to run the rules
+  setTimeout(() => {
+    this.saveData();
+  }, 100);
+}

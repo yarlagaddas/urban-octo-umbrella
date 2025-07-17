@@ -1,0 +1,24 @@
+private debugFlowStructure(obj: any): void {
+  if (Array.isArray(obj)) {
+    obj.forEach(child => this.debugFlowStructure(child));
+  } else if (obj && typeof obj === 'object') {
+    const stringified = JSON.stringify(obj).toLowerCase();
+    if (stringified.includes('replace')) {
+      console.log('🔍 Found replace-related block:', obj);
+    }
+
+    Object.values(obj).forEach(child => this.debugFlowStructure(child));
+  }
+}
+
+
+public save(): void {
+  this.debugFlowStructure(this.flowData); // <== debug only
+
+  // Then later call your sync method
+  this.syncReplaceUIDPairs();
+
+  setTimeout(() => {
+    this.saveData();
+  }, 100);
+}

@@ -1,0 +1,18 @@
+public save(): void {
+  setTimeout(() => {
+    const allInputs = document.querySelectorAll('input, textarea, select');
+
+    allInputs.forEach((input) => {
+      (input as HTMLElement).dispatchEvent(new Event('change', { bubbles: true }));
+      (input as HTMLElement).blur();
+    });
+
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    setTimeout(() => {
+      this.saveData();
+    }, 100);
+  }, 50); // <-- This 50ms delay simulates the "pause" from breakpoint
+}

@@ -1,0 +1,27 @@
+Got it 👍 — you want to keep that last point as a continuation statement, not part of the main bullet list.
+Here’s the clean and final version — clear, confident, and reads exactly like a message you’d naturally send:
+
+⸻
+
+Subject: Plan for Copilot Custom Instructions – Angular
+
+Hi [Manager’s Name],
+
+After discussing with Ana, below is the plan we laid out for implementing Copilot custom instructions for our Angular setup.
+
+We’ll start with steps 2 to 5 – defining the project overview, tech stack, coding guidelines, and project structure. These are the core pieces that will help Copilot understand our Angular 19 standards and generate code aligned with our practices.
+
+Plan:
+	•	Create the main .github/copilot-instructions.md file with the project overview, tech stack details, and folder structure.
+	•	Document Angular 19 standards including Material, Kendo, Jest, ESLint, and SWFT shared libraries.
+	•	Add coding guidelines covering components, services, and testing patterns.
+	•	Validate by generating a sample component within one of the SWFT libraries using these instructions.
+
+Once the foundation is in place, we’ll add reusable prompts and comment guidance to complete the setup. With that, our POC will be ready, demonstrating how Copilot can generate consistent and standards-based Angular code.
+
+Thanks,
+Subha
+
+⸻
+
+Would you like me to make a shorter Teams version too (2–3 lines summary you can send in chat after the email)?

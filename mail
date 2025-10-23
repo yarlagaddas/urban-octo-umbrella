@@ -1,0 +1,12 @@
+Subject: Issue Accessing Fulfillment Application in Dev Environments
+
+Hi Pavan,
+
+I’m running into an issue with the Fulfillment application across Dev1, Dev2, ata1, and ata2. My user record isn’t showing up under the Users page — it always displays “No records found,” which prevents me from adding myself to any team or role.
+
+I had connected with Amol and Tarun earlier, and they were very helpful in checking entitlements and configurations, but the issue still persists. I just wanted to bring this to your attention since it’s slowing down my analysis, testing, and troubleshooting activities on my current story.
+
+Could you please take a look when you get a chance?
+
+Thanks,
+Subhakar

@@ -1,0 +1,98 @@
+public ByteArrayInputStream writeMapToExcelStream(List<DashboardCasesResponse> data,
+                                                  List<String> columns,
+                                                  String traceId,
+                                                  String altNumber) {
+
+    // ✅ Added input validation and early logging (to avoid hidden NPEs)
+    log.info("writeMapToExcelStream: incoming data size={}, columns={}",
+            (data == null ? "null" : data.size()), columns); // ADDED
+
+    if (columns == null || columns.isEmpty()) { // ADDED
+        throw new IllegalArgumentException("Export columns are required"); // ADDED
+    }
+    if (data == null) { // ADDED
+        data = java.util.Collections.emptyList(); // ADDED
+    }
+
+    log.info("Start writing data to excel at DashboardCaseRequestService.writeMapToExcelStream with traceId [{}]", traceId);
+
+    try (Workbook workbook = new XSSFWorkbook();
+         ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+
+        Sheet sheet = workbook.createSheet("DATA");
+
+        Row headerRow = sheet.createRow(0);
+        IntStream.range(0, columns.size()).forEach(i ->
+                headerRow.createCell(i).setCellValue(ExportDataHeader.getDisplayNameForColumn(columns.get(i)))
+        );
+
+        AtomicInteger rowIndex = new AtomicInteger(1);
+
+        data.stream()
+                .filter((DashboardCasesResponse obj) -> obj.getIsUserAllowedToViewRequest())
+                .forEach((DashboardCasesResponse rowData) -> {
+                    Row row = sheet.createRow(rowIndex.getAndIncrement());
+                    IntStream.range(0, columns.size()).forEach(i -> {
+                        Cell cell = row.createCell(i);
+                        Object value = getObjectFromDashboardCasesResponse(rowData, columns.get(i));
+
+                        if (ExportDataHeader.FORM_CLASSIFICATION.getColumn().equalsIgnoreCase(columns.get(i))) {
+                            value = rowData.getIsRequestTypePrivate()
+                                    ? DashboardCasesRequestsConstants.PRIVATE
+                                    : rowData.getIsRequestTypeSearchRestricted()
+                                    ? DashboardCasesRequestsConstants.PUBLIC_RESTRICTED
+                                    : DashboardCasesRequestsConstants.PUBLIC;
+                        }
+
+                        if (value instanceof Number) {
+                            cell.setCellValue(((Number) value).doubleValue());
+                        } else if (java.util.Objects.nonNull(value)) {
+
+                            // ✅ Added safer date handling (prevents ClassCastException)
+                            if (FulfillmentCaseConstants.EXPORT_DATE_TRANSFORM_COLUMN.contains(columns.get(i))) { // ADDED
+                                try { // ADDED
+                                    java.time.format.DateTimeFormatter formatter =
+                                            java.time.format.DateTimeFormatter.ofPattern("MM/dd/yy");
+                                    if (value instanceof java.time.ZonedDateTime) { // ADDED
+                                        cell.setCellValue(((java.time.ZonedDateTime) value).format(formatter)); // ADDED
+                                    } else if (value instanceof java.time.LocalDateTime) { // ADDED
+                                        cell.setCellValue(((java.time.LocalDateTime) value).format(formatter)); // ADDED
+                                    } else if (value instanceof java.sql.Timestamp) { // ADDED
+                                        cell.setCellValue(((java.sql.Timestamp) value).toInstant()
+                                                .atZone(java.time.ZoneId.systemDefault())
+                                                .format(formatter)); // ADDED
+                                    } else { // ADDED
+                                        cell.setCellValue(value.toString()); // ADDED
+                                    }
+                                } catch (Exception e) { // ADDED
+                                    cell.setCellValue(value.toString()); // ADDED
+                                }
+                            } else {
+                                cell.setCellValue(value.toString());
+                            }
+                        } else {
+                            cell.setCellValue("");
+                        }
+                    });
+                });
+
+        IntStream.range(0, columns.size()).forEach(i -> sheet.autoSizeColumn(i));
+
+        workbook.write(bos); // ✅ ADDED — critical: actually write workbook bytes into buffer
+
+        log.info("Finished writing data to excel at DashboardCaseRequestService.writeMapToExcelStream with traceId [{}]", traceId); // ADDED
+        return new ByteArrayInputStream(bos.toByteArray()); // ✅ ADDED — ensures non-null return stream
+
+    } catch (Exception ex) {
+        log.error("Fail to write the data to excel at DashboardCaseRequestService.writeMapToExcelStream with traceId [{}]", traceId, ex);
+        throw new RuntimeException("Failed to generate Excel export", ex); // ✅ ADDED — stop returning null
+    }
+}
+
+
+inputStream = dashboardService.writeMapToExcelStream(
+        exportData, request.getExportedToColumns(), traceId, altNumber);
+
+if (inputStream == null) {
+    throw new IllegalStateException("Excel export stream is null — generation failed");
+}

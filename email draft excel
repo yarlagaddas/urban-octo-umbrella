@@ -1,0 +1,12 @@
+Hi [Name],
+
+I was able to reproduce the same issue in the DEV environment. The application was successfully pulling data from the source but was failing during the Excel export step.
+
+The issue was in the writeMapToExcelStream() method — the workbook data wasn’t being written to the output stream, which caused the Excel export to fail. I’ve fixed it to properly write the data and added fail-safes so that any export error now throws a clear exception instead of returning a null stream.
+
+Additionally, I noticed that the data retrieval (getCaseRequests) is taking longer than expected. For example, fetching 318 records took 111 seconds, and 1212 records took 353–418 seconds in DEV. It’s unclear if this delay is due to the environment or the query itself, so we’ll need to monitor this further. Since the API has a 60-second execution limit, we should validate this behavior in ATA as well.
+
+Please test the export once from your side and confirm if everything looks good.
+
+Thanks,
+Subhakar
